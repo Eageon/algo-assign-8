@@ -1,0 +1,99 @@
+
+CS 5343.002 Algorithm analysis and Data Structures
+Fall 2013
+Sat, Nov 9
+Assignment #8
+
+Version: 1.0
+Due: 2 AM, Mon, December 2, on eLearning
+
+Instructions: This is a required programming assignment (individual or group). 
+
+In this project, implement two shortest path algorithms: Dijkstra's algorithm,
+and DAG-shortest paths algorithm.
+
+Part 1. Single-source shortest paths in directed graphs:
+Input:
+The input will begin with a string on a line by itself (this is just a title). 
+A line follows containing two integers, N and s, giving the number of vertices
+in the graph (vertices are numbered 0,1,2,...,N-1), and the source node,
+respectively. Then the edge list will follow.  For each graph edge there will
+be three space-separated integers, from, to, and weight. The edges are not
+listed in any particular order.
+
+Here is an example input file:
+Graph from page 298 of the text // title string
+7 1        // number of vertices, and the number of the source node
+1 2 2      //directed edge from v1 to v2 of weight 2
+1 4 1
+2 5 10     // directed edge from v2 to v5 with weight 10
+2 4 3
+5 0 6      // there will not be comments in the input
+3 1 4
+3 6 5
+4 3 2
+0 6 1
+4 5 2
+4 0 4
+4 6 8
+
+There will not be more than 1024 vertices.  Edge weights will be in [1, 200].
+The input will be terminated by the end of file.  There will not be any blank
+lines following the last edge list entry.
+
+Expected Output:
+First print names of the team members, separated by commas.
+Then print the title line from the input file.
+Then output for each vertex its shortest path length from s,
+and its predecessor in such a shortest path.
+
+Sample output:
+Ivor Page, Balaji Raghavachari
+Graph from page 298 of the text
+0 5 4
+1 0 -
+2 2 1
+3 3 4
+4 1 1
+5 3 4
+6 6 0
+
+
+If there is no directed path from source s to vertex v print the line, "No path from s to v", instead of the corresponding line above.
+
+
+Part b: Critical paths in projects (longest path in DAG).
+Input:
+First line of input is a comment.  Second line has N, the number of tasks.
+It is followed by a line with N integers, which are the durations of the
+tasks.  Then each line that follows has 2 integers, gives a precedence
+constraint between 2 tasks.  Tasks are numbered 0..N-1.  Do not assume
+any ordering of the tasks or the edges.  There are at most 1000 tasks
+and 6000 precedence constraints.
+
+Sample input:
+Figure 9.33.  Activity-node graph (start/finish nodes in fig are not tasks)
+9
+3 2 3 2 1 3 2 4 1
+0 2
+0 3
+1 3
+1 4
+2 5
+3 5
+3 6
+4 6
+4 7
+5 8
+6 8
+7 8
+
+Output:
+Print the length of a critical path (which is a longest path in the graph)
+and the list of tasks on that path.
+
+Sample output:
+10
+0 2 5 8
+
+More sample files will be provided later.
