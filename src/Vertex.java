@@ -1,9 +1,9 @@
-import java.util.ArrayList;
+
 
 
 public class Vertex implements Comparable<Vertex> {
-	public ArrayList<Integer> adj = new ArrayList<>();
-	public ArrayList<Integer> adjWeight = new ArrayList<>();
+	public MyLinkedList<Integer> adj = new MyLinkedList<>();
+	public MyLinkedList<Integer> adjWeight = new MyLinkedList<>();
 	public int indegree, outdegree;
 	public int top;
 	public int dis;
