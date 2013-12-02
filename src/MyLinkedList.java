@@ -75,6 +75,8 @@ public class MyLinkedList<E> implements Iterable<E> {
 	}
 
 	public E remove(int idx) {
+		if(theSize == 0)
+			return null;
 		return remove(getNode(idx));
 	}
 
