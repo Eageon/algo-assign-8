@@ -129,13 +129,16 @@ public class CriticalPath {
 	public void outputResult(BufferedWriter output) throws IOException {
 		// TODO Auto-generated method stub
 		output.write(findLongest() + "\n");
+		System.out.println(findLongest());
 		criticalPathNodes.remove(0);
 		criticalPathNodes.remove(criticalPathNodes.size() - 1);
 		criticalPathNodes = criticalPathNodes.reverse();
 		for (int path : criticalPathNodes) {
 			output.write(path + " ");
+			System.out.print(path + " ");
 		}
 		output.write("\n");
+		System.out.println("");
 	}
 
 	private void taskAddIndegree(int index) {
@@ -158,7 +161,7 @@ public class CriticalPath {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		String in50 = "pert.100.150.txt";
+		String in50 = "pert.10.15.txt";
 		String out = "out.".concat(in50);
 		BufferedReader input = null;
 
@@ -200,7 +203,6 @@ public class CriticalPath {
 		criticalPath.findCriticalPath();
 		System.out.println("Longest Path length = "
 				+ criticalPath.findLongest());
-		System.out.println("Test : " + criticalPath.isEveryTraversed());
 
 		BufferedWriter output = null;
 
