@@ -7,12 +7,15 @@ import java.io.IOException;
 
 public class CriticalPath {
 	private Task[] tasks;
-	private Task start, finish;
-	// private MyLinkedList<Task> eventNodes = new MyLinkedList<>();
-	private MyListQueue<Task> Q = new MyListQueue<>();
+	private int num_tasks;
+	private int start, finish;
+	private MyLinkedList<Integer> criticalPathNodes = new MyLinkedList<>();
+	private MyListQueue<Integer> Q = new MyListQueue<>();
 
 	public CriticalPath(int num_tasks) {
-		tasks = new Task[num_tasks];
+		this.num_tasks = num_tasks;
+		tasks = new Task[num_tasks + 2]; // add start and finish as indexed
+											// num_tasks and num_tasks + 1
 		for (int i = 0; i < tasks.length; i++) {
 			tasks[i] = new Task();
 		}
@@ -24,85 +27,91 @@ public class CriticalPath {
 		finish = addFinishNode();
 
 		computeEC();
+		computeLC();
 
 		return 0;
 	}
 
-	private Task addStartNode() {
-		Task start = new Task();
+	private int addStartNode() {
+		start = num_tasks;
 
-		for (int i = 0; i < tasks.length; i++) {
-			if (tasks[i].indegree == 0) {
-				start.succs.add(tasks[i]);
-				tasks[i].indegree++;
+		for (int i = 0; i < num_tasks; i++) {
+			if (tasks[i].precs.size() == 0) {
+				tasks[start].succs.add(i);
+				taskAddSucc(start, i);
+				taskAddPrec(i, start);
 			}
 		}
 
 		return start;
 	}
 
-	private Task addFinishNode() {
-		Task finish = new Task();
+	private int addFinishNode() {
+		finish = num_tasks + 1;
 
-		for (Task task : tasks) {
-			if (task.succs.size() == 0) {
-				finish.indegree++;
-				task.succs.add(finish);
+		for (int i = 0; i < num_tasks; i++) {
+			if (tasks[i].succs.size() == 0) {
+				taskAddPrec(finish, i);
+				taskAddSucc(i, finish);
 			}
 		}
 
 		return finish;
 	}
 
-	// private void addEventNodes() {
-	// for (Task node : tasks) {
-	// if (node.precs.size() > 1) {
-	// Task nodePrime = new Task();
-	// nodePrime.precs = node.precs;
-	// nodePrime.succs.add(node);
-	// node.precs = new MyLinkedList<>();
-	// node.precs.add(nodePrime);
-	// eventNodes.add(nodePrime);
-	// }
-	// }
-	// }
-
 	private void computeEC() {
 		Q.enqueue(start);
 		int next = 1;
 
+		// topological order
 		while (!Q.isEmpty()) {
-			Task node = Q.dequeue();
-			node.top = next++;
-			Task succ;
-			while ((succ = node.succs.remove(0)) != null) {
-				succ.indegree--;
+			Integer u = Q.dequeue();
+			tasks[u].top = next++;
+			Integer v;
+			while ((v = tasks[u].succs.remove(0)) != null) {
+				tasks[v].indegree--;
 
-				if (succ.indegree == 0) {
-					Q.enqueue(succ); // Each node enqueue only once
+				if (tasks[v].indegree == 0) {
+					Q.enqueue(v); // Each node enqueue only once
 				}
-				if (succ.EC <= node.EC + succ.duration) {
-					succ.EC = node.EC + succ.duration;
+				if (tasks[v].EC <= tasks[u].EC + tasks[v].duration) {
+					tasks[v].EC = tasks[u].EC + tasks[v].duration;
+					// tasks[v].LC = tasks[v].EC;
 				}
 			}
 		}
-
-		// if(next != tasks.length +1)
-		// try {
-		// throw new Exception("G is NOT DAG");
-		// } catch (Exception e) {
-		// // TODO Auto-generated catch block
-		// e.printStackTrace();
-		// }
 	}
 
 	private void computeLC() {
-		
+		Q.clear();
+		Q.enqueue(finish);
+		int next = 1;
+		for (Task task : tasks)
+			task.LC = findLongest();
+
+		// reverse topological order
+		while (!Q.isEmpty()) {
+			Integer v = Q.dequeue();
+			tasks[v].reverseTop = next++;		
+			Integer u;
+			while ((u = tasks[v].precs.remove(0)) != null) {
+				tasks[u].outdegree--;
+
+				if (tasks[u].outdegree == 0) {
+					Q.enqueue(u); // Each node enqueue only once
+				}
+				if (tasks[u].LC > tasks[v].LC - tasks[v].duration) {
+					tasks[u].LC = tasks[v].LC - tasks[v].duration;			
+				}
+			}
+			if (tasks[v].LC == tasks[v].EC)
+				criticalPathNodes.add(v);
+		}
 	}
 
 	public boolean isEveryTraversed() {
 		boolean ret = true;
-		for (int i = 0; i < tasks.length; i++) {
+		for (int i = 0; i < num_tasks; i++) {
 			if (tasks[i].EC == 0) {
 				System.out.println("Not traversed task " + i);
 				ret = false;
@@ -114,31 +123,43 @@ public class CriticalPath {
 
 	public int findLongest() {
 
-		return finish.EC;
+		return tasks[finish].EC;
 	}
 
-	public static void outputResult(BufferedWriter output) {
+	public void outputResult(BufferedWriter output) throws IOException {
 		// TODO Auto-generated method stub
-
+		output.write(findLongest() + "\n");
+		criticalPathNodes.remove(0);
+		criticalPathNodes.remove(criticalPathNodes.size() - 1);
+		criticalPathNodes = criticalPathNodes.reverse();
+		for (int path : criticalPathNodes) {
+			output.write(path + " ");
+		}
+		output.write("\n");
 	}
 
 	private void taskAddIndegree(int index) {
 		tasks[index].indegree++;
 	}
 
+	private void taskAddOutdegree(int index) {
+		tasks[index].outdegree++;
+	}
+
 	public void taskAddSucc(int index, int succ) {
-		tasks[index].succs.add(tasks[succ]);
+		tasks[index].succs.add(succ);
+		taskAddOutdegree(index);
 	}
 
 	public void taskAddPrec(int index, int prec) {
-		tasks[index].precs.add(tasks[prec]);
+		tasks[index].precs.add(prec);
 		taskAddIndegree(index);
 	}
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		String in50 = "pert.1000.5000.txt";
-		String out = "out.pert.100.150.txt";
+		String in50 = "pert.100.150.txt";
+		String out = "out.".concat(in50);
 		BufferedReader input = null;
 
 		try {
@@ -187,7 +208,7 @@ public class CriticalPath {
 		output.write("Jun Yu\n");
 		output.write(titleLine + "\n");
 
-		CriticalPath.outputResult(output);
+		criticalPath.outputResult(output);
 
 		output.close();
 	}

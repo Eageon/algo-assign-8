@@ -16,4 +16,8 @@ public class MyListQueue<E> {
 	public boolean isEmpty() {
 		return items.size() == 0 ? true : false;
 	}
+	
+	public void clear() {
+		items.clear();
+	}
 }
