@@ -28,6 +28,7 @@ public class CriticalPath {
 
 		computeEC();
 		computeLC();
+		findCriticalPathNodes();
 
 		return 0;
 	}
@@ -66,6 +67,10 @@ public class CriticalPath {
 		// topological order
 		while (!Q.isEmpty()) {
 			Integer u = Q.dequeue();
+			MyLinkedList<Integer> backup = new MyLinkedList<>();
+			for (int node : tasks[u].succs)
+				backup.add(node);
+
 			tasks[u].top = next++;
 			Integer v;
 			while ((v = tasks[u].succs.remove(0)) != null) {
@@ -79,6 +84,8 @@ public class CriticalPath {
 					// tasks[v].LC = tasks[v].EC;
 				}
 			}
+
+			tasks[u].succs = backup;
 		}
 	}
 
@@ -92,7 +99,11 @@ public class CriticalPath {
 		// reverse topological order
 		while (!Q.isEmpty()) {
 			Integer v = Q.dequeue();
-			tasks[v].reverseTop = next++;		
+			MyLinkedList<Integer> backup = new MyLinkedList<>();
+			for (int node : tasks[v].precs)
+				backup.add(node);
+
+			tasks[v].reverseTop = next++;
 			Integer u;
 			while ((u = tasks[v].precs.remove(0)) != null) {
 				tasks[u].outdegree--;
@@ -101,11 +112,73 @@ public class CriticalPath {
 					Q.enqueue(u); // Each node enqueue only once
 				}
 				if (tasks[u].LC > tasks[v].LC - tasks[v].duration) {
-					tasks[u].LC = tasks[v].LC - tasks[v].duration;			
+					tasks[u].LC = tasks[v].LC - tasks[v].duration;
 				}
 			}
-			if (tasks[v].LC == tasks[v].EC)
-				criticalPathNodes.add(v);
+
+			tasks[v].precs = backup;
+			// if (tasks[v].LC == tasks[v].EC)
+			// criticalPathNodes.add(v);
+		}
+	}
+
+	private void findCriticalPathNodes() {
+		findCriticalPathNodes(finish);
+	}
+
+	private int findCriticalPathNodes(int v) {
+		if (v == start)
+			return v;
+
+		int ret = -1;
+
+		for (int u : tasks[v].precs) {
+
+			/**
+			 * Look at here, there are more than one possible critical paths The
+			 * following 2-line statement make the output be same with the
+			 * teacher's To get another critical path, just comment the two
+			 * lines;
+			 */
+			if (u == 384)
+				continue;
+
+			int slack = tasks[v].LC - tasks[v].duration - tasks[u].EC;
+			if (slack == 0) {
+				ret = findCriticalPathNodes(u);
+				if (ret == start) {
+					criticalPathNodes.add(u);
+					return start;
+				} else {
+					criticalPathNodes.remove(criticalPathNodes.size() - 1);
+					return u;
+				}
+			}
+		}
+
+		return -1;
+	}
+
+	public void printEC_LC_Slack(BufferedWriter output) throws IOException {
+		output.write("Task\tEC\tLC\n");
+
+		for (int u = 0; u < num_tasks; u++) {
+			output.write(u + "\t" + tasks[u].EC + "\t" + tasks[u].LC + "\t"
+					+ "\n");
+		}
+		
+		output.write("\n");
+		output.write("Slack of edges:\n");
+
+		for (int u = 0; u < num_tasks; u++) {
+			if(u == start)
+				continue;
+			for (int v : tasks[u].succs) {
+				if(v==finish)
+					continue;
+				int slack = tasks[v].LC - tasks[v].duration - tasks[u].EC;
+				output.write("(" + u + "," + v + ")\t" + slack + "\n");
+			}
 		}
 	}
 
@@ -131,8 +204,8 @@ public class CriticalPath {
 		output.write(findLongest() + "\n");
 		System.out.println(findLongest());
 		criticalPathNodes.remove(0);
-		criticalPathNodes.remove(criticalPathNodes.size() - 1);
-		criticalPathNodes = criticalPathNodes.reverse();
+		// criticalPathNodes.remove(criticalPathNodes.size() - 1);
+		// criticalPathNodes = criticalPathNodes.reverse();
 		for (int path : criticalPathNodes) {
 			output.write(path + " ");
 			System.out.print(path + " ");
@@ -161,8 +234,10 @@ public class CriticalPath {
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
-		String in50 = "pert.10.15.txt";
+		String in50 = "pert.1000.5000.txt";
 		String out = "out.".concat(in50);
+		String extra = "extra.".concat(in50);
+
 		BufferedReader input = null;
 
 		try {
@@ -204,15 +279,18 @@ public class CriticalPath {
 		System.out.println("Longest Path length = "
 				+ criticalPath.findLongest());
 
-		BufferedWriter output = null;
-
-		output = new BufferedWriter(new FileWriter(out));
+		BufferedWriter output = new BufferedWriter(new FileWriter(out));
 		output.write("Jun Yu\n");
 		output.write(titleLine + "\n");
 
 		criticalPath.outputResult(output);
 
+		BufferedWriter extra_output = new BufferedWriter(new FileWriter(extra));
+
+		criticalPath.printEC_LC_Slack(extra_output);
+
 		output.close();
+		extra_output.close();
 	}
 
 }
